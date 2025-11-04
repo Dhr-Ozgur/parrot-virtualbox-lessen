@@ -1,34 +1,70 @@
-# Parrot VM Lab - VirtualBox lessenserie
+# Parrot VirtualBox Lessenserie
 
-Dit repository beschrijft een meer-delige lessenserie (5 lessen) om een veilige en reproduceerbare pentest-labomgeving op te zetten met Parrot OS in VirtualBox.  
-Elke les krijgt zijn eigen repository of map: `les-1-virtualbox`, `les-2-hostonly`, `les-3-static-ip`, `les-4-scans`, `les-5-cmdb-report`.
+Welkom bij de **Parrot VirtualBox Lessenserie** — een stap-voor-stap handleiding om een veilige pentest-laboratoriumomgeving te bouwen met **Parrot OS** in **VirtualBox**.
 
-## Doelgroep
-Studenten Information Security, stagiairs en iedereen die veilig een labo wil opzetten om pentest-tools te leren gebruiken zonder risico voor productie- of openbare netwerken.
+Deze lessen zijn bedoeld voor studenten **HBO Informatica / Information Security**, en iedereen die wil leren hoe je een ethisch hacking-lab professioneel en verantwoord opzet.
 
-## Overzicht van de 5 lessen
-- **Les 1 — VirtualBox basis & best practices**  
-  Intro VirtualBox, snapshots, Guest Additions, netwerkmodi en veilige architectuur (Host-only + NAT).
-- **Les 2 — Host-only netwerk aanmaken & IP-plan**  
-  Host Network Manager, vboxnet0 configuratie, waarom DHCP uit/aan en voorbeeld IP-plan.
-- **Les 3 — Statische IP toewijzen in Parrot & target VMs**  
-  `nmcli`, `ip` en `ifconfig` voorbeelden, persistente configuratie en controle.
-- **Les 4 — Basis scans en outputs**  
-  `nmap`, `nikto`, `gobuster` commando's, nmap XML export en veilige testregels.
-- **Les 5 — Rapportage & CMDB integratie**  
-  Kort rapportformat, velden voor CMDB, nmap-xml -> JSON script en voorbeeld CSV/JSON export.
+---
 
-## GitHub structuur en workflow (aanbevolen)
-Voor elke les maak je een aparte repo of map. Een aanbevolen layout per les:
+## 🎯 Doel van de serie
+Na het voltooien van deze 5 lessen kun je:
+- Zelf een veilige virtuele pentestomgeving bouwen;
+- VirtualBox-netwerken correct configureren (zonder risico voor echte netwerken);
+- Basis pentest-tools gebruiken zoals `nmap`, `nikto`, `burp`, `gobuster`;
+- Scanresultaten verwerken en rapporteren in een CMDB-achtige structuur.
+
+---
+
+## 📚 Overzicht van de lessen
+
+| Les | Onderwerp | Wat je leert |
+|-----|------------|--------------|
+| **Les 1** | VirtualBox basisprincipes | Interface, snapshots, netwerkmodi, veilige architectuur (Host-only + NAT). |
+| **Les 2** | Host-only netwerk en IP-plan | Host Network Manager gebruiken, IP’s plannen en isolatie begrijpen. |
+| **Les 3** | Statische IP’s instellen | IP-adressen configureren in Parrot en Metasploitable. |
+| **Les 4** | Basis netwerkscans | Nmap, Nikto en Gobuster gebruiken in een gecontroleerde omgeving. |
+| **Les 5** | Rapportage & CMDB | Scanresultaten omzetten naar rapport of database (JSON/CSV). |
+
+---
+
+## 🧱 Projectstructuur
+Elke les krijgt een eigen repository:
+
+parrot-virtualbox-lessen/
+└── les-1-virtualbox/
+└── les-2-hostonly/
+└── les-3-static-ip/
+└── les-4-scans/
+└── les-5-cmdb/
 
 
-**Commit & push workflow (kort):**
+Zo blijft elke stap overzichtelijk en kun je makkelijk terugkijken naar eerdere onderdelen.
+
+---
+
+## ⚙️ GitHub Workflow
+
 ```bash
+# Voorbeeld bij een nieuwe les
+mkdir les-1-virtualbox
+cd les-1-virtualbox
 git init
-git add .
-git commit -m "Les X: korte omschrijving"
-git remote add origin https://github.com/<jouw>/les-X-naam.git
+git add README.md
+git commit -m "Les 1: VirtualBox basisprincipes"
 git branch -M main
+git remote add origin https://github.com/Dhr-Ozgur/parrot-virtualbox-lessen
 git push -u origin main
+💡 Benodigdheden
 
+VirtualBox (versie 7 of hoger)
 
+Parrot OS (Security Edition aanbevolen)
+
+8 GB RAM of meer
+
+Basiskennis van Linux & netwerken
+
+Enthousiasme 😎
+📜 Licentie
+
+MIT License – vrij te gebruiken voor studie en niet-commerciële projecten.
