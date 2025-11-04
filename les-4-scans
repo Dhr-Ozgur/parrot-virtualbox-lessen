@@ -1,0 +1,157 @@
+# Les 4 — Basis netwerkscans: nmap, nikto & gobuster
+
+**Doel:**  
+In deze les leer je hoe je in je veilige, geïsoleerde labomgeving basis netwerkscans uitvoert met `nmap`, web-scans met `nikto` en directory-enumeratie met `gobuster`. Je leert ook hoe je de output veilig opslaat (XML/JSON) zodat je deze later in rapporten of een CMDB kunt importeren.
+
+> **Belangrijk:** Voer deze scans alleen uit binnen je geïsoleerde Host-only lab (bv. `vboxnet0`) en **niet** tegen systemen op het openbare internet zonder expliciete toestemming.
+
+---
+
+## 🎯 Leerdoelen
+- Nmap commando’s gebruiken voor host discovery, port/service detection en eenvoudige vulnerability scripts.
+- Webserver scans doen met Nikto.
+- Directory- en endpoint-fuzzing doen met Gobuster.
+- Resultaten veilig opslaan (XML, tekst, pcap) voor latere verwerking.
+- Basisinterpretatie van scanresultaten en prioriteitenstelling.
+
+---
+
+## 🧰 Benodigdheden
+- Parrot (attacker) met tools geïnstalleerd: `nmap`, `nikto`, `gobuster`
+- Target VM met vast IP (bv. `192.168.56.101`)
+- Isolated Host-only netwerk (vboxnet0)
+
+Als een tool ontbreekt, installeer:
+```bash
+sudo apt update
+sudo apt install -y nmap nikto gobuster
+1) Host discovery (wie is er online?)
+
+Snel overzicht van actieve hosts:
+
+nmap -sn 192.168.56.0/24
+
+
+Wat je ziet: lijst van IP-adressen en welke hosts up zijn.
+Opslaan: redirect output naar een bestand:
+
+nmap -sn 192.168.56.0/24 -oN outputs/hosts_up.txt
+
+2) Port- en service-detectie (nmap)
+
+Volledige TCP-port scan met service & versie detectie:
+
+nmap -sS -sV -O 192.168.56.101 -p- -oN outputs/nmap_full_192-168-56-101.txt
+
+
+-sS : SYN scan (sneller, stealthier)
+
+-sV : service/version detection
+
+-O : OS-detectie (kan onnauwkeurig zijn in VM’s)
+
+-p- : alle poorten (1–65535)
+
+Snelle scan (minder zwaar):
+
+nmap -sS -sV 192.168.56.101 -oN outputs/nmap_quick_192-168-56-101.txt
+
+
+XML-output (handig voor scripts/CMDB):
+
+nmap -oX outputs/nmap_192-168-56-101.xml -sS -sV 192.168.56.101
+
+3) Eenvoudige kwetsbaarheids-scripts (Nmap NSE)
+
+Nmap heeft een script engine (NSE) met veel handige scripts. Voor een veilige, snelle check:
+
+nmap --script vuln 192.168.56.101 -oN outputs/nmap_vuln_192-168-56-101.txt
+
+
+LET OP: sommige NSE-scripts kunnen schadelijk zijn of veel verkeer genereren. Gebruik alleen vuln of specifieke scripts die non-destructive zijn in je lab.
+
+4) Webserver scan met Nikto
+
+Nikto scant webservers op bekende issues en misconfiguraties:
+
+nikto -h http://192.168.56.101 -o outputs/nikto_192-168-56-101.txt
+
+
+Wat te controleren in Nikto-output: server headers, verouderde software, directory listing waarschuwingen, bekende vulnerabilities.
+
+5) Directory- & endpoint discovery met Gobuster
+
+Gobuster zoekt verborgen directories of bestanden:
+
+gobuster dir -u http://192.168.56.101 -w /usr/share/wordlists/dirb/common.txt -o outputs/gobuster_dirs_192-168-56-101.txt
+
+
+-u : target URL
+
+-w : wordlist pad (gebruik de meegeleverde woordenlijsten in Parrot)
+
+-o : outputbestand
+
+Tip: begin met een kleine wordlist, schakel later grotere lijsten in.
+
+6) HTTP request/response capture (Burp / ZAP) — optioneel
+
+Voor handmatige analyse: stel je browser in om via Burp/ZAP proxy te werken en maak dan spidering/active scans in het lab. Sla verzoek/antwoord logs op als bewijs/PoC (niet openbaar delen).
+
+7) Netwerkverkeer opnemen (pcap) — tcpdump / Wireshark
+
+Voor diepere analyse kun je pakketten opnemen:
+
+sudo tcpdump -i eth1 -w outputs/capture_lab.pcap
+# stop met Ctrl+C
+
+
+Open capture_lab.pcap in Wireshark op je host voor gedetailleerde inspectie.
+
+8) Output verwerken / bewaren
+
+nmap XML is ideaal om te parsen naar JSON/CSV (Les 5).
+
+Sla alle outputs op in een outputs/ map per target, inclusief datum/tijd.
+
+Gebruik consistente bestandsnamen: tool_target_datum.ext (bv. nmap_192-168-56-101_2025-11-04.xml).
+
+Voorbeeld command die alles in map zet:
+
+mkdir -p outputs
+nmap -oX outputs/nmap_192-168-56-101_$(date +%F).xml -sS -sV 192.168.56.101
+nikto -h http://192.168.56.101 -o outputs/nikto_192-168-56-101_$(date +%F).txt
+
+9) Basisresultaat interpreteren (kort)
+
+Open poorten: focus op services die onnodig openstaan (FTP, Telnet, oude HTTP).
+
+Versies: verouderde versies van services zijn meestal prioriteit voor patching.
+
+Web issues: directory listing, misconfiguraties, expliciete XSS/SQL hints.
+
+Prioriteit stellen: Critical → High → Medium → Low (gebruik CVSS of eenvoudige Low/Medium/High).
+
+10) Veiligheidsregels & ethiek (herhaling)
+
+Scans alleen in je geïsoleerde lab uitvoeren.
+
+Geen actieve exploits uitvoeren op productie of externe targets.
+
+Bewaar gevoelige outputs veilig en deel niet publiek zonder toestemming.
+
+✅ Checklist (Les 4)
+
+ nmap -sn uitgevoerd en hosts geverifieerd
+
+ Volledige nmap service-scan uitgevoerd en XML opgeslagen
+
+ nmap --script vuln (voorzichtig) uitgevoerd
+
+ nikto webscan uitgevoerd (indien webserver aanwezig)
+
+ gobuster directory-scan uitgevoerd (indien webserver aanwezig)
+
+ Outputs in outputs/ map opgeslagen met datum in bestandsnaam
+
+ Eventuele pcaps veilig opgeslagen (indien gemaakt)
