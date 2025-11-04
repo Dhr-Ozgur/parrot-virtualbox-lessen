@@ -1,0 +1,149 @@
+# Les 5 — Rapportage & CMDB (nmap XML → JSON/CSV)
+
+**Doel:**  
+Leer hoe je scanresultaten structureert, omzet naar machine-leesbare formaten (JSON/CSV) en een kort technisch rapport maakt. Deze les gebruikt nmap XML-output als bron en laat zien hoe je die automatisch kunt omzetten naar JSON of CSV voor invoer in een CMDB of rapport.
+
+---
+
+## 🎯 Leerdoelen
+- Welke velden hoort een CMDB-record te bevatten;
+- Hoe nmap-XML automatisch te parsen naar JSON/CSV;
+- Hoe je een kort, professioneel pentest-minirapport schrijft;
+- Hoe je outputs veilig en overzichtelijk opslaat.
+
+---
+
+## 📁 Aanbevolen CMDB-velddefinitie
+Gebruik deze velden voor elk gevonden host-record:
+
+| Veldnaam | Beschrijving |
+|----------|--------------|
+| hostname | Hostnaam indien beschikbaar |
+| ip       | IPv4 adres |
+| os       | OS-guess (nmap) |
+| ports    | Lijst van open poorten (poortnummer/protocol/service/version) |
+| vulnerabilities | Lijst van gevonden waarschuwingen/gevaarlijke services (indien uit scripts) |
+| risk     | Low/Medium/High (handmatig toe te voegen) |
+| cve      | CVE identifiers indien automatisch gedetecteerd |
+| first_seen | Datum van scan |
+| notes    | Vrij tekstveld (bv. PoC of extra observaties) |
+
+---
+
+## ⚙️ Workflow (praktisch)
+1. Voer nmap uit en exporteer naar XML:
+```bash
+nmap -sS -sV --script vuln -oX outputs/nmap_target_192-168-56-101_$(date +%F).xml 192.168.56.101
+
+Gebruik het parser-script (hieronder) om JSON en CSV te maken:
+
+bash
+Code kopiëren
+python3 parse_nmap_to_json_csv.py outputs/nmap_target_192-168-56-101_2025-11-04.xml
+# Resultaat: outputs/nmap_... .json en outputs/nmap_... .csv
+Controleer de JSON/CSV en voeg handmatig risico-classificatie toe waar nodig.
+
+Maak een kort Markdown-rapport (voorbeeld onderaan).
+
+🧰 Script: parse_nmap_to_json_csv.py
+Maak in je repo een bestand scripts/parse_nmap_to_json_csv.py met de volgende inhoud:
+
+python
+Code kopiëren
+#!/usr/bin/env python3
+# parse_nmap_to_json_csv.py
+# Usage: python3 parse_nmap_to_json_csv.py path/to/nmap.xml
+
+import xml.etree.ElementTree as ET
+import json, csv, sys, os
+from datetime import datetime
+
+if len(sys.argv) != 2:
+    print("Usage: python3 parse_nmap_to_json_csv.py path/to/nmap.xml")
+    sys.exit(1)
+
+xml_path = sys.argv[1]
+tree = ET.parse(xml_path)
+root = tree.getroot()
+
+hosts_out = []
+scan_date = datetime.now().strftime("%Y-%m-%d")
+
+for host in root.findall('host'):
+    addr_node = host.find('address')
+    ip = addr_node.get('addr') if addr_node is not None else ''
+    hostnames = host.find('hostnames')
+    hostname = ''
+    if hostnames is not None:
+        hn = hostnames.find('hostname')
+        if hn is not None:
+            hostname = hn.get('name')
+
+    os_guess = ''
+    os_elem = host.find('os')
+    if os_elem is not None:
+        osmatch = os_elem.find('osmatch')
+        if osmatch is not None:
+            os_guess = osmatch.get('name')
+
+    ports_list = []
+    for port in host.findall('.//port'):
+        portid = port.get('portid')
+        protocol = port.get('protocol')
+        state = port.find('state').get('state') if port.find('state') is not None else ''
+        service_elem = port.find('service')
+        service = service_elem.get('name') if service_elem is not None and service_elem.get('name') else ''
+        version = service_elem.get('version') if service_elem is not None and service_elem.get('version') else ''
+        ports_list.append({
+            'port': portid,
+            'protocol': protocol,
+            'state': state,
+            'service': service,
+            'version': version
+        })
+
+    # vuln/script output (collect warnings)
+    vulns = []
+    for script in host.findall('.//script'):
+        scriptid = script.get('id')
+        output = script.get('output')
+        if scriptid and output:
+            vulns.append({'script': scriptid, 'output': output})
+
+    record = {
+        'hostname': hostname,
+        'ip': ip,
+        'os': os_guess,
+        'ports': ports_list,
+        'vulnerabilities': vulns,
+        'risk': '',
+        'cve': [],
+        'first_seen': scan_date,
+        'notes': ''
+    }
+    hosts_out.append(record)
+
+# Output paths
+base = os.path.splitext(os.path.basename(xml_path))[0]
+json_path = os.path.join('outputs', base + '.json')
+csv_path = os.path.join('outputs', base + '.csv')
+
+os.makedirs('outputs', exist_ok=True)
+
+# Write JSON
+with open(json_path, 'w') as j:
+    json.dump(hosts_out, j, indent=2)
+
+# Write CSV (flatten ports as a string)
+with open(csv_path, 'w', newline='') as c:
+    writer = csv.writer(c)
+    header = ['hostname','ip','os','ports','vulnerabilities','risk','cve','first_seen','notes']
+    writer.writerow(header)
+    for h in hosts_out:
+        ports_str = ';'.join([f"{p['port']}/{p['protocol']}:{p['service']}({p['version']})" for p in h['ports']])
+        vulns_str = ';'.join([f"{v['script']}|{v['output']}" for v in h['vulnerabilities']])
+        writer.writerow([h['hostname'],h['ip'],h['os'],ports_str,vulns_str,h['risk'],';'.join(h['cve']),h['first_seen'],h['notes']])
+
+print(f"Written: {json_path} and {csv_path}")
+Toelichting: het script maakt een outputs/ map en schrijft zowel JSON als CSV. De CSV bevat ports als een samengevoegde string — dit is eenvoudig te importeren in veel CMDB-tools of spreadsheets.
+
