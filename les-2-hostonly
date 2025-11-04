@@ -1,0 +1,31 @@
+# Les 2 — Host-only Netwerk & IP-Plan
+
+**Doel:**  
+Leer hoe je een Host-only netwerk aanmaakt en een IP-plan opstelt voor jouw lab.
+
+---
+
+## Stappen
+1. Open VirtualBox → **Bestand → Host Network Manager**.  
+2. Klik **Create** → er verschijnt `vboxnet0`.  
+3. Stel in:
+   - IPv4: `192.168.56.1`
+   - Netmask: `255.255.255.0`
+   - DHCP: uitgeschakeld
+4. Bepaal IP-plan:
+
+| Rol | VM | IP-adres |
+|-----|----|-----------|
+| Host | laptop | 192.168.56.1 |
+| Attacker | Parrot OS | 192.168.56.10 |
+| Target | Metasploitable | 192.168.56.101 |
+
+---
+
+## Controle
+```bash
+# Op host
+ip a | grep vboxnet
+
+# In Parrot
+ping 192.168.56.1
