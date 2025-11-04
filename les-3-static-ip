@@ -1,0 +1,160 @@
+# Les 3 — Statische IP-adressen instellen (Parrot & Metasploitable)
+
+In deze les geef je jouw virtuele machines (Parrot en Metasploitable) **vaste IP-adressen** binnen het **Host-only netwerk**.  
+Zo blijft elk systeem altijd bereikbaar op hetzelfde IP — handig voor scans, scripts en rapportage.
+
+---
+
+## 🎯 Leerdoelen
+Na deze les kun je:
+- De juiste netwerkinterface in elke VM vinden;
+- Een statisch IP-adres instellen (tijdelijk en permanent);
+- Controleren of beide VM’s elkaar kunnen pingen.
+
+---
+
+## 🧩 Voorbereiding
+Uit Les 2 heb je een Host-only netwerk (`vboxnet0`) met dit IP-plan:
+
+| Rol | VM | IP-adres |
+|------|----|-----------|
+| Host (laptop) | — | 192.168.56.1 |
+| Attacker (Parrot OS) | Parrot | 192.168.56.10 |
+| Target (Metasploitable) | Metasploitable | 192.168.56.101 |
+
+Controleer eerst dat beide VM’s draaien en verbonden zijn met `vboxnet0`.
+
+---
+
+## ⚙️ Deel 1 — Parrot OS (aanvallende machine)
+
+### 1️⃣ Interface vinden
+Open een terminal in Parrot:
+
+```bash
+ip a
+Zoek de interface die op het Host-only netwerk zit.
+Vaak heet die eth1 of enp0s8.
+
+2️⃣ Tijdelijk IP instellen
+
+(Deze instelling verdwijnt na een reboot, maar is handig om te testen.)
+
+sudo ip addr add 192.168.56.10/24 dev eth1
+sudo ip link set eth1 up
+
+
+Test:
+
+ping -c 3 192.168.56.1      # Ping de host
+ping -c 3 192.168.56.101    # Ping de target VM
+
+
+Als de pings werken, is de netwerkverbinding goed.
+
+3️⃣ Permanent IP instellen
+
+Gebruik NetworkManager (nmcli) om het IP vast in te stellen:
+
+nmcli con show
+
+
+Zoek de juiste verbinding, meestal heet die "Wired connection 1" of "Wired connection 2".
+
+Dan:
+
+sudo nmcli con mod "Wired connection 1" \
+ipv4.addresses "192.168.56.10/24" \
+ipv4.gateway "192.168.56.1" \
+ipv4.method manual
+
+sudo nmcli con up "Wired connection 1"
+
+
+Controleer:
+
+ip a
+
+
+Je zou nu het IP 192.168.56.10 moeten zien.
+
+⚙️ Deel 2 — Metasploitable (doelwitmachine)
+1️⃣ Interface vinden
+
+Open in Metasploitable:
+
+ifconfig
+
+
+of
+
+ip a
+
+
+Interface heet meestal eth0.
+
+2️⃣ Tijdelijk IP instellen
+sudo ip addr add 192.168.56.101/24 dev eth0
+sudo ip link set eth0 up
+
+
+Test of het werkt:
+
+ping -c 3 192.168.56.10
+
+3️⃣ Permanent maken (optioneel)
+
+Als je wilt dat het IP na een reboot blijft bestaan:
+
+Open het configuratiebestand:
+
+sudo nano /etc/network/interfaces
+
+
+Voeg dit toe (of pas het aan):
+
+auto eth0
+iface eth0 inet static
+    address 192.168.56.101
+    netmask 255.255.255.0
+    gateway 192.168.56.1
+
+
+Opslaan met Ctrl + O, afsluiten met Ctrl + X.
+
+Herstart netwerk:
+
+sudo systemctl restart networking
+
+🔍 Testen of alles werkt
+
+In Parrot:
+
+ping -c 3 192.168.56.101
+
+
+In Metasploitable:
+
+ping -c 3 192.168.56.10
+
+
+Beide moeten elkaar kunnen bereiken.
+Als één kant niet werkt:
+
+Controleer of de juiste adapter (Host-only) actief is in VirtualBox.
+
+Kijk of de firewall op Parrot of Metasploitable uitstaat of goed geconfigureerd is.
+
+✅ Checklist
+
+ Parrot heeft een vast IP (192.168.56.10)
+
+ Metasploitable heeft een vast IP (192.168.56.101)
+
+ Beide VM’s kunnen elkaar pingen
+
+ Netwerkinterfaces gecontroleerd
+
+ Optioneel: instellingen permanent gemaakt
+
+
