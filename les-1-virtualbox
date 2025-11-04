@@ -1,75 +1,46 @@
+
+---
+
+## 🧩 Les 1 — `les-1-virtualbox/README.md`
+
+```markdown
 # Les 1 — VirtualBox Basisprincipes & Veilige Setup
 
-Welkom bij **Les 1** van de Parrot VirtualBox Lessenserie.  
-In deze les leer je de basis van VirtualBox, de verschillende netwerkmodi, en hoe je een veilige virtuele labomgeving voorbereidt voor je Parrot OS pentest-omgeving.
+**Doel:**  
+Leer de basis van VirtualBox, de netwerkmodi en hoe je een veilige labomgeving voorbereidt voor Parrot OS.
 
 ---
 
-## 🎯 Leerdoelen
-Na deze les kun je:
-- De VirtualBox-interface gebruiken;
-- Uitleggen wat elke netwerkmodus doet (NAT, Host-only, Bridged, Internal, NAT Network);
-- Een veilige lab-architectuur kiezen;
-- Een snapshot maken voor herstel;
-- De VM-instellingen correct configureren voor de volgende lessen.
+## Leerdoelen
+- VirtualBox-interface begrijpen;
+- Verschillende netwerkmodi uitleggen;
+- Snapshots maken en beheren;
+- Veilige architectuur kiezen (NAT + Host-only).
 
 ---
 
-## 🧩 Stappenplan
-
-### 1️⃣ VirtualBox openen en verkennen
-1. Start **VirtualBox**.  
-2. Selecteer je **Parrot OS VM**.  
-3. Klik op **Instellingen (Settings)**.  
-4. Bekijk de tabbladen:  
-   - **Systeem** → RAM, CPU (minimaal 4 GB RAM, 2 cores).  
-   - **Beeldscherm (Display)** → Videogeheugen ≥ 128 MB.  
-   - **Opslag (Storage)** → Controleer of de juiste .vdi-schijf gekoppeld is.  
-
----
-
-### 2️⃣ Snapshots maken
-Voordat je instellingen wijzigt:
-- Ga in VirtualBox naar **Snapshots**.  
-- Klik **Maak snapshot (Take Snapshot)**.  
-- Noem hem bijvoorbeeld `les-1-base`.  
-
-Zo kun je altijd terug naar een schoon startpunt.
+## Stappen
+1. Open VirtualBox → selecteer Parrot VM → **Instellingen**.
+2. Controleer systeem, geheugen, opslag.
+3. Ga naar **Netwerk**:
+   - Adapter 1 → NAT  
+   - Adapter 2 → Host-only Adapter (`vboxnet0`)  
+   - Promiscuous Mode → Deny  
+4. Maak een snapshot: `les-1-base`.
+5. Screenshot opslaan: `screenshots/network-settings.png`.
 
 ---
 
-### 3️⃣ Netwerkmodi begrijpen
-
-| Modus | Beschrijving | Gebruik in lab |
-|-------|---------------|----------------|
-| **NAT** | VM kan naar internet, maar is niet zichtbaar van buitenaf. | Voor Parrot-VM (internetupdates). |
-| **Host-only** | Alleen communicatie tussen host & VM’s. | Voor labverkeer (Parrot ↔ Targets). |
-| **Bridged** | VM deelt echt netwerk met je pc. | ⚠️ Niet gebruiken in lab! |
-| **Internal** | Alleen VM’s onderling, host ziet het niet. | Optioneel voor extra isolatie. |
-| **NAT Network** | Gezamenlijk NAT-netwerk met internet. | Niet nodig voor dit project. |
+## Waarom NAT + Host-only?
+- NAT geeft Parrot internettoegang voor updates.
+- Host-only is een afgesloten netwerk voor pentesting.
+- Doel-VM’s (zoals Metasploitable) blijven veilig geïsoleerd.
 
 ---
 
-### 4️⃣ Veilige setup instellen
-1. In **Instellingen → Netwerk**:  
-   - **Adapter 1** → *NAT*  
-   - **Adapter 2** → *Host-only Adapter* (vboxnet0)  
-2. Klik onder *Geavanceerd* (Advanced):  
-   - **Promiscuous Mode** → *Deny*  
-   - **Kabel aangesloten (Cable Connected)** → aangevinkt ✅  
-
-Zo kan Parrot via NAT internetten, en via Host-only praten met andere VM’s.
-
----
-
-### 5️⃣ Snapshot na configuratie
-Maak nog een snapshot genaamd `les-1-configured` zodra alles werkt.
-
----
-
-## 🧠 Waarom deze setup?
-Deze dubbele netwerkconfiguratie voorkomt dat kwetsbare doel-VM’s het internet bereiken, maar laat jou als aanvaller-VM (Parrot) wel updates installeren en tools downloaden.  
-Zo leer je pentesten op een **veilige, gecontroleerde** manier — essentieel voor professioneel werk.
-
-
-
+## Checklist
+- [ ] VirtualBox geopend  
+- [ ] Adapter 1 = NAT  
+- [ ] Adapter 2 = Host-only  
+- [ ] Snapshot gemaakt  
+- [ ] Screenshot toegevoegd
