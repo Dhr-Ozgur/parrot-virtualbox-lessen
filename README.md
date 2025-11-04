@@ -1,4 +1,4 @@
-# Parrot VM Lab — VirtualBox lessenserie
+# Parrot VM Lab - VirtualBox lessenserie
 
 Dit repository beschrijft een meer-delige lessenserie (5 lessen) om een veilige en reproduceerbare pentest-labomgeving op te zetten met Parrot OS in VirtualBox.  
 Elke les krijgt zijn eigen repository of map: `les-1-virtualbox`, `les-2-hostonly`, `les-3-static-ip`, `les-4-scans`, `les-5-cmdb-report`.
