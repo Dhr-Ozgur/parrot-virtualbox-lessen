@@ -21,3 +21,14 @@ Studenten Information Security, stagiairs en iedereen die veilig een labo wil op
 ## GitHub structuur en workflow (aanbevolen)
 Voor elke les maak je een aparte repo of map. Een aanbevolen layout per les:
 
+
+**Commit & push workflow (kort):**
+```bash
+git init
+git add .
+git commit -m "Les X: korte omschrijving"
+git remote add origin https://github.com/<jouw>/les-X-naam.git
+git branch -M main
+git push -u origin main
+
+
